@@ -1,40 +1,60 @@
 syntax = "proto3";
 
-package auth_service;
+package user_service;
 
-import "google/protobuf/timestamp.proto";
+import "proto_validation/validate.proto";
 
-option go_package = "BHLA/proto/protoPB;auth";
+option go_package = "BHLA/proto/auth_service";
 
-enum SessionState {
-  SESSION_STATE_UNDEFINED = 0;
-  SESSION_STATE_ACTIVE = 1;
-  SESSION_STATE_INACTIVE = 2;
-  SESSION_STATE_SUSPENDED = 3;
+enum UserRoles {
+  UNAUTHORISED_USER = 0;
+  FREE_PLAN_USER = 1;
+  PRO_PLAN_USER = 2;
+  ADMIN = 3;
 }
 
-service AuthorizationService {
-  rpc AuthorizeUser(AuthorizeUserRequest) returns (AuthorizeUserResponse);
-  rpc ValidateSession(ValidateSessionRequest) returns (ValidateSessionResponse);
+service AuthService {
+  rpc UserLogin(LoginRequest) returns (LoginResponse);
+  rpc PlanChange(PlanChangeRequest) returns (PlanChangeResponse);
 }
 
-message AuthorizeUserRequest {
-  string username = 1;
-  string password = 2;
+message LoginRequest {
+  string user_name = 1 [(validate.rules).string = {
+    pattern: "^[A-Za-z]+( [A-Za-z]+)*$",
+    min_len: 2,
+    max_len: 128
+  }];
+
+  string user_password = 2 [(validate.rules).string = {
+    pattern: "^[\\x21-\\x7E]+$",
+    min_len: 8,
+    max_len: 72
+  }];
 }
 
-message AuthorizeUserResponse {
-  string user_id = 1;
-  string session_id = 2;
+// поставил пока сессию на uuid, если что пересоберу
+message LoginResponse {
+  string user_id = 1 [(validate.rules).string.uuid = true];
+  string session_id = 2 [(validate.rules).string.uuid = true];
 }
 
-message ValidateSessionRequest {
-  string session_id = 1;
+message PlanChangeRequest {
+  string user_name = 1 [(validate.rules).string = {
+    pattern: "^[A-Za-z]+( [A-Za-z]+)*$",
+    min_len: 2,
+    max_len: 128
+  }];
+
+  UserRoles user_role = 2 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
 }
 
-message ValidateSessionResponse {
-  string session_id = 1;
-  string user_id = 2;
-  SessionState state = 3;
-  google.protobuf.Timestamp valid_until = 4;
+message PlanChangeResponse {
+  string user_name = 1 [(validate.rules).string = {
+    pattern: "^[A-Za-z]+( [A-Za-z]+)*$",
+    min_len: 2,
+    max_len: 128
+  }];
+
+  UserRoles user_role = 2 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
 }
+

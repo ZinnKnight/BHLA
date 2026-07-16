@@ -6,7 +6,7 @@ import "proto_validation/validate.proto";
 import "proto_validation/money.proto";
 import "proto_validation/decimal.proto";
 
-option go_package = "BHLA/proto/protoPB;order";
+option go_package = "BHLA/proto/order_service";
 
 service OrderService {
   rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse);
@@ -25,7 +25,6 @@ enum OrderStatus {
 }
 
 message Order {
-
   string user_id = 1 [(validate.rules).string.uuid = true];
 
   string order_id = 2 [(validate.rules).string.uuid = true];
@@ -39,25 +38,19 @@ message Order {
   OrderStatus order_status = 6 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
 
   int64 created_at = 7;
-
 }
 
 
 message CreateOrderRequest {
-
   string market_id = 1 [(validate.rules).string.uuid = true];
 
   google.type.Decimal amount = 2;
 
   google.type.Money price = 3 [(validate.rules).message.required = true];
-
-
 }
 
 message CreateOrderResponse {
-
   Order create_order_response = 1;
-
 }
 
 message OrderStatusByIDRequest {
@@ -65,9 +58,7 @@ message OrderStatusByIDRequest {
 }
 
 message OrderStatusByIDResponse {
-
   Order order_status_response = 1;
-
 }
 
 message OrderStatusAllRequest {

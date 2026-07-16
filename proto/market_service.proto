@@ -2,9 +2,9 @@ syntax = "proto3";
 
 package market_service;
 
-import "validate/validate.proto";
+import "proto_validation/validate.proto";
 
-option go_package = "BHLA/proto/protoPB;markets";
+option go_package = "BHLA/proto/market_service";
 
 service SpotInstrumentService {
   rpc ViewMarketsByID(ViewMarketRequest) returns (ViewMarketResponse);
@@ -19,43 +19,31 @@ message Market {
   }];
 
   string goods_id = 2 [(validate.rules).string.uuid = true];
-
   string market_id = 3 [(validate.rules).string.uuid = true];
-
   bool market_accessibility = 4;
-
   int64 market_ttl = 5;
 }
 
 message ViewMarketRequest {
-
   string view_market_request = 1 [(validate.rules).string = {
     min_len: 2,
     max_len: 256
   }];
 
+  string user_id = 2;
 }
 
 message ViewMarketResponse {
-
   Market view_market_response = 1;
-
 }
 
 message ViewAllMarketsRequest {
-
-  string token = 1;
-
+  string user_id = 1;
   int32 page_size = 2;
-
   string page_token = 3;
-
 }
 
 message ViewAllMarketsResponse {
-
   repeated Market markets = 1;
-
   string next_page_token = 2;
-
 }
