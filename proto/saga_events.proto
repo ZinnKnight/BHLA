@@ -4,7 +4,7 @@ package saga;
 
 import "proto_validation/validate.proto";
 
-option go_package = "BHLA/proto/saga_events";
+option go_package = "BHLA/proto/saga_events;saga_eventsPB";
 
 message OrderCreated {
   string order_id  = 1 [(validate.rules).string.uuid = true];

@@ -3,19 +3,19 @@ syntax = "proto3";
 package auth_service;
 
 import "proto_validation/validate.proto";
+import "google/protobuf/timestamp.proto";
 
-option go_package = "BHLA/proto/auth_service";
+option go_package = "BHLA/proto/auth_service;auth_servicePB";
 
-enum UserRoles {
-  UNAUTHORISED_USER = 0;
-  FREE_PLAN_USER = 1;
-  PRO_PLAN_USER = 2;
-  ADMIN = 3;
+enum SessionState {
+  SESSION_STATE_UNDEFINED = 0;
+  SESSION_STATE_ACTIVE    = 1;
+  SESSION_STATE_INACTIVE  = 2;
+  SESSION_STATE_SUSPENDED = 3;
 }
 
 service AuthService {
   rpc UserLogin(LoginRequest) returns (LoginResponse);
-  rpc PlanChange(PlanChangeRequest) returns (PlanChangeResponse);
 }
 
 message LoginRequest {
@@ -38,23 +38,13 @@ message LoginResponse {
   string session_id = 2 [(validate.rules).string.uuid = true];
 }
 
-message PlanChangeRequest {
-  string user_name = 1 [(validate.rules).string = {
-    pattern: "^[A-Za-z]+( [A-Za-z]+)*$",
-    min_len: 2,
-    max_len: 128
-  }];
-
-  UserRoles user_role = 2 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
+message ValidateSessionRequest {
+  string session_id = 1 [(validate.rules).string.uuid = true];
 }
 
-message PlanChangeResponse {
-  string user_name = 1 [(validate.rules).string = {
-    pattern: "^[A-Za-z]+( [A-Za-z]+)*$",
-    min_len: 2,
-    max_len: 128
-  }];
-
-  UserRoles user_role = 2 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
+message ValidateSessionResponse {
+  string session_id = 1 [(validate.rules).string.uuid = true];
+  string user_id = 2 [(validate.rules).string.uuid = true];
+  SessionState session_state = 3;
+  google.protobuf.Timestamp ttl = 4;
 }
-

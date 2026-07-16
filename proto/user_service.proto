@@ -5,7 +5,7 @@ package user_service;
 import "google/protobuf/timestamp.proto";
 import "proto_validation/validate.proto";
 
-option go_package = "BHLA/proto/user_service";
+option go_package = "BHLA/proto/user_service;user_servicePB";
 
 enum UserRoles {
   UNAUTHORISED_USER = 0;
@@ -17,6 +17,7 @@ enum UserRoles {
 service UserService {
   rpc UserRegistration(RegisterRequest) returns (RegisterResponse);
   rpc GetUserData(GetUserDataRequest) returns (GetUserDataResponse);
+  rpc ChangeUserPlan(PlanChangeRequest) returns (PlanChangeResponse);
 }
 
 message User {
@@ -40,8 +41,14 @@ message User {
 
 message UserData {
   string user_id = 1 [(validate.rules).string.uuid = true];
-  string user_name = 2;
-  UserRoles user_role = 3;
+
+  string user_name = 2 [(validate.rules).string = {
+    pattern: "^[A-Za-z]+( [A-Za-z]+)*$",
+    min_len: 2,
+    max_len: 128
+  }];
+
+  UserRoles user_role = 3 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
 }
 
 
@@ -71,3 +78,17 @@ message GetUserDataRequest {
 message GetUserDataResponse {
   UserData user_data = 1;
 }
+
+
+message PlanChangeRequest {
+  string user_id = 1 [(validate.rules).string.uuid = true];
+
+  UserRoles user_role = 2 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
+}
+
+message PlanChangeResponse {
+  string user_id = 1 [(validate.rules).string.uuid = true];
+
+  UserRoles user_role = 2 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
+}
+

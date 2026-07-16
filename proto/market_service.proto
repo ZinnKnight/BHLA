@@ -4,7 +4,7 @@ package market_service;
 
 import "proto_validation/validate.proto";
 
-option go_package = "BHLA/proto/market_service";
+option go_package = "BHLA/proto/market_service;market_servicePB";
 
 service SpotInstrumentService {
   rpc ViewMarketsByID(ViewMarketRequest) returns (ViewMarketResponse);
