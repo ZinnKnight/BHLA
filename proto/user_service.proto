@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package user_service;
 
-import "google/protobuf/timestamp.proto";
 import "proto_validation/validate.proto";
 
 option go_package = "BHLA/proto/user_service;user_servicePB";
