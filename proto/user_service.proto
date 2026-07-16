@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package auth_service;
+package user_service;
 
 import "google/protobuf/timestamp.proto";
 import "proto_validation/validate.proto";
@@ -40,7 +40,6 @@ message User {
 
 
 message RegisterRequest {
-
   string user_name = 1 [(validate.rules).string = {
     pattern: "^[A-Za-z]+( [A-Za-z]+)*$",
     min_len: 2,
@@ -52,8 +51,6 @@ message RegisterRequest {
     min_len: 8,
     max_len: 72
   }];
-
-  UserRoles user_role = 3 [(validate.rules).enum = {defined_only: true, not_in:[0]}];
 }
 
 message RegisterResponse {
@@ -62,7 +59,7 @@ message RegisterResponse {
 }
 
 message GetUserDataRequest {
-  User user_data = 1;
+  string user_id = 1 [(validate.rules).string.uuid = true];
 }
 
 message GetUserDataResponse {

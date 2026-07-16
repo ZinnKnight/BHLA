@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package user_service;
+package auth_service;
 
 import "proto_validation/validate.proto";
 

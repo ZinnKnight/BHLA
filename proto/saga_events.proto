@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package saga;
+
+import "proto_validation/validate.proto";
+
+option go_package = "BHLA/proto/saga_events";
+
+message OrderCreated {
+  string order_id  = 1 [(validate.rules).string.uuid = true];
+  string user_id   = 2 [(validate.rules).string.uuid = true];
+  string market_id = 3 [(validate.rules).string.uuid = true];
+  string price     = 4 [(validate.rules).string.min_len = 1];
+  string amount    = 5 [(validate.rules).string.min_len = 1];
+  string status    = 6 [(validate.rules).string.min_len = 1];
+}
+message ReserveStock {
+  string order_id  = 1 [(validate.rules).string.uuid = true];
+  string user_id   = 2 [(validate.rules).string.uuid = true];
+  string market_id = 3 [(validate.rules).string.uuid = true];
+  string amount    = 4 [(validate.rules).string.min_len = 1];
+}
+message StockReserved {
+  string order_id = 1 [(validate.rules).string.uuid = true];
+  string market_id = 2 [(validate.rules).string.uuid = true];
+}
+
+
+message StockRejected {
+  string order_id = 1 [(validate.rules).string.uuid = true];
+  string market_id = 2 [(validate.rules).string.uuid = true];
+  string reason = 3;
+}
+
+message OrderStatusChanged {
+  string order_id = 1 [(validate.rules).string.uuid = true];
+  string status = 2 [(validate.rules).string.min_len = 1];
+}
