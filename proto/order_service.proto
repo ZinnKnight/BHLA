@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package order_service;
+
+import "proto_validation/validate.proto";
+import "proto_validation/money.proto";
+import "proto_validation/decimal.proto";
+
+option go_package = "BHLA/proto/protoPB;order";
+
+service OrderService {
+  rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse);
+  rpc GetOrderStatusByID(OrderStatusByIDRequest) returns (OrderStatusByIDResponse);
+  rpc StreamOrderUpdates(StreamOrderRequest) returns (stream OrderStatusByIDResponse);
+  rpc GetOrderStatusAll(OrderStatusAllRequest) returns (OrderStatusAllResponse);
+}
+
+enum OrderStatus {
+  UNREGISTERED_STATUS = 0;
+  ORDER_REJECTED = 1;
+  ORDER_CREATED = 2;
+  ORDER_RESERVED = 3;
+  ORDER_IN_PROCESS_OF_DELIVERY = 4;
+  ORDER_HAS_BEEN_DELIVERED = 5;
+}
+
+message Order {
+
+  string user_id = 1 [(validate.rules).string.uuid = true];
+
+  string order_id = 2 [(validate.rules).string.uuid = true];
+
+  string market_id = 3 [(validate.rules).string.uuid = true];
+
+  google.type.Money price = 4 [(validate.rules).message.required = true];
+
+  google.type.Decimal amount = 5;
+
+  OrderStatus order_status = 6 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
+
+  int64 created_at = 7;
+
+}
+
+
+message CreateOrderRequest {
+
+  string market_id = 1 [(validate.rules).string.uuid = true];
+
+  google.type.Decimal amount = 2;
+
+  google.type.Money price = 3 [(validate.rules).message.required = true];
+
+
+}
+
+message CreateOrderResponse {
+
+  Order create_order_response = 1;
+
+}
+
+message OrderStatusByIDRequest {
+  string order_id = 1 [(validate.rules).string.uuid = true];
+}
+
+message OrderStatusByIDResponse {
+
+  Order order_status_response = 1;
+
+}
+
+message OrderStatusAllRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+}
+
+message OrderStatusAllResponse {
+  repeated Order all_orders_statuses_response = 1;
+  string next_page_token = 2;
+}
+
+message StreamOrderRequest {
+  string order_id = 1 [(validate.rules).string.uuid = true];
+}

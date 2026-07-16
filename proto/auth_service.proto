@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package auth_service;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "BHLA/proto/protoPB;auth";
+
+enum SessionState {
+  SESSION_STATE_UNDEFINED = 0;
+  SESSION_STATE_ACTIVE = 1;
+  SESSION_STATE_INACTIVE = 2;
+  SESSION_STATE_SUSPENDED = 3;
+}
+
+service AuthorizationService {
+  rpc AuthorizeUser(AuthorizeUserRequest) returns (AuthorizeUserResponse);
+  rpc ValidateSession(ValidateSessionRequest) returns (ValidateSessionResponse);
+}
+
+message AuthorizeUserRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message AuthorizeUserResponse {
+  string user_id = 1;
+  string session_id = 2;
+}
+
+message ValidateSessionRequest {
+  string session_id = 1;
+}
+
+message ValidateSessionResponse {
+  string session_id = 1;
+  string user_id = 2;
+  SessionState state = 3;
+  google.protobuf.Timestamp valid_until = 4;
+}

@@ -1,0 +1,109 @@
+syntax = "proto3";
+
+package user_service;
+
+import "validate/validate.proto";
+
+option go_package = "BHLA/proto/protoPB;auth";
+
+enum Roles {
+  UNAUTHORISED_USER = 0;
+  FREE_PLAN_USER = 1;
+  PRO_PLAN_USER = 2;
+  ADMIN = 3;
+}
+
+message User {
+
+  string user_id = 1 [(validate.rules).string.uuid = true];
+
+  string user_name = 2 [(validate.rules).string = {
+    pattern: "^[A-Za-z]+( [A-Za-z]+)*$",
+    min_len: 4,
+    max_len: 16
+  }];
+
+  string user_password = 3 [(validate.rules).string = {
+
+    pattern: "^[\\x21-\\x7E]+$",
+    min_len: 8,
+    max_len: 72
+  }];
+
+  Roles user_role = 4 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
+}
+
+
+service AuthService {
+  rpc UserRegistration(RegisterRequest) returns (AuthResponse);
+  rpc UserLogin(LoginRequest) returns (AuthResponse);
+  rpc PlanChange(PlanChangeRequest) returns (PlanChangeResponse);
+}
+
+
+message RegisterRequest {
+
+  string user_name = 1 [(validate.rules).string = {
+    pattern: "^[A-Za-z]+( [A-Za-z]+)*$",
+    min_len: 4,
+    max_len: 16
+  }];
+
+  string user_password = 2 [(validate.rules).string = {
+    pattern: "^[\\x21-\\x7E]+$",
+    min_len: 8,
+    max_len: 72
+  }];
+
+  Roles user_role = 3 [(validate.rules).enum = {defined_only: true, not_in:[0]}];
+
+}
+
+message LoginRequest {
+
+  string user_name = 1 [(validate.rules).string = {
+    pattern: "^[A-Za-z]+( [A-Za-z]+)*$",
+    min_len: 4,
+    max_len: 16
+  }];
+
+  string user_password = 2 [(validate.rules).string = {
+    pattern: "^[\\x21-\\x7E]+$",
+    min_len: 8,
+    max_len: 72
+  }];
+
+}
+
+message AuthResponse {
+
+  string token = 1;
+
+  int64 token_ttl = 2;
+
+}
+
+
+message PlanChangeRequest {
+
+  string user_name = 1 [(validate.rules).string = {
+    pattern: "^[A-Za-z]+( [A-Za-z]+)*$",
+    min_len: 4,
+    max_len: 16
+  }];
+
+  Roles user_role = 2 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
+
+}
+
+message PlanChangeResponse {
+
+  string user_name = 1 [(validate.rules).string = {
+    pattern: "^[A-Za-z]+( [A-Za-z]+)*$",
+    min_len: 4,
+    max_len: 16
+  }];
+
+  Roles user_role = 2 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
+}
+
