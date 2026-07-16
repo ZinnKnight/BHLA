@@ -10,7 +10,6 @@ import (
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	_ "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -503,7 +502,7 @@ var File_user_service_proto protoreflect.FileDescriptor
 
 const file_user_service_proto_rawDesc = "" +
 	"\n" +
-	"\x12user_service.proto\x12\fuser_service\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1fproto_validation/validate.proto\"\xee\x01\n" +
+	"\x12user_service.proto\x12\fuser_service\x1a\x1fproto_validation/validate.proto\"\xee\x01\n" +
 	"\x04User\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xfaB\x05r\x03\xb0\x01\x01R\x06userId\x12A\n" +
 	"\tuser_name\x18\x02 \x01(\tB$\xfaB!r\x1f\x10\x02\x18\x80\x012\x18^[A-Za-z]+( [A-Za-z]+)*$R\buserName\x12>\n" +
