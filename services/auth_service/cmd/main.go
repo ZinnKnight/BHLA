@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"BHLA/services/auth-service/app"
+	"BHLA/services/auth_service/app"
 )
 
 func main() {

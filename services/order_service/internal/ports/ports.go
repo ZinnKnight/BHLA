@@ -3,7 +3,7 @@ package ports
 import (
 	"context"
 
-	"BHLA/services/order-service/internal/domain"
+	"BHLA/services/order_service/internal/domain"
 )
 
 type OrderInbound interface {

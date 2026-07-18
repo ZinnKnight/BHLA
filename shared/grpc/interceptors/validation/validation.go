@@ -5,7 +5,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	"BHLA/shared/grpc/interceptors/errmap"
+	"BHLA/shared/grpc/interceptors/err_map"
 )
 
 type allErrors interface {
@@ -29,7 +29,7 @@ func validate(req any) error {
 func UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		if err := validate(req); err != nil {
-			return nil, errmap.NewError(errmap.Invalid, "некорректные данные запроса", err)
+			return nil, err_map.NewError(err_map.Invalid, "некорректные данные запроса", err)
 		}
 		return handler(ctx, req)
 	}

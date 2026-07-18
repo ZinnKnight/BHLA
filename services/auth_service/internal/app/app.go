@@ -11,29 +11,29 @@ import (
 
 	authpb "BHLA/proto/auth_service"
 	"BHLA/shared/config"
-	"BHLA/shared/grpc/interceptors/errmap"
-	"BHLA/shared/grpc/interceptors/panicrecover"
+	"BHLA/shared/grpc/interceptors/err_map"
+	"BHLA/shared/grpc/interceptors/panic_recover"
 	"BHLA/shared/grpc/interceptors/validation"
 	"BHLA/shared/logging"
-	"BHLA/shared/logging/zapadapter"
+	"BHLA/shared/logging/zap_adapter"
 	"BHLA/shared/metrics"
 	"BHLA/shared/policy"
 	"BHLA/shared/postgres"
 	"BHLA/shared/quota"
-	"BHLA/shared/ratelimiter"
-	"BHLA/shared/redisclient"
-	"BHLA/shared/sessionvalidation"
+	"BHLA/shared/rate_limiter"
+	"BHLA/shared/redis_client"
+	"BHLA/shared/session_validation"
 
-	"BHLA/services/auth-service/internal/adapters/grpcadapter"
-	"BHLA/services/auth-service/internal/adapters/postgresadapter"
-	"BHLA/services/auth-service/internal/usecase"
+	"BHLA/services/auth_service/internal/adapters/grpc_adapter"
+	"BHLA/services/auth_service/internal/adapters/postgres_adapter"
+	"BHLA/services/auth_service/internal/usecase"
 )
 
 type App struct {
 	cfg        *config.Config
 	logger     logging.Logger
 	pool       *pgxpool.Pool
-	redis      *redisclient.Client
+	redis      *redis_client.Client
 	grpcServer *grpc.Server
 	metricsRec *metrics.PrometheusRecord
 }
@@ -44,7 +44,7 @@ func New(ctx context.Context) (*App, error) {
 		return nil, fmt.Errorf("config: %w", err)
 	}
 
-	logger, err := zapadapter.New()
+	logger, err := zap_adapter.New()
 	if err != nil {
 		return nil, fmt.Errorf("logger: %w", err)
 	}
@@ -60,7 +60,7 @@ func New(ctx context.Context) (*App, error) {
 		return nil, fmt.Errorf("postgres: %w", err)
 	}
 
-	rdb, err := redisclient.New(ctx, redisclient.Config{
+	rdb, err := redis_client.New(ctx, redis_client.Config{
 		Addr:         cfg.RedisAddr,
 		Password:     cfg.RedisPassword,
 		DB:           cfg.RedisDB,
@@ -79,22 +79,22 @@ func New(ctx context.Context) (*App, error) {
 		return nil, fmt.Errorf("policy: %w", err)
 	}
 
-	repo := postgresadapter.NewCredentialRepo(pool)
-	sessionStore := sessionvalidation.NewStore(rdb.Client)
-	sessionReader := sessionvalidation.NewRedisValidator(rdb.Client)
-	limiter := ratelimiter.NewRateLimiter(rdb.Client, cfg.RateLimitPerMin, time.Minute) // окно берётся из quota на AllowKey
+	repo := postgres_adapter.NewCredentialRepo(pool)
+	sessionStore := session_validation.NewStore(rdb.Client)
+	sessionReader := session_validation.NewRedisValidator(rdb.Client)
+	limiter := rate_limiter.NewRateLimiter(rdb.Client, cfg.RateLimitPerMin, time.Minute) // окно берётся из quota на AllowKey
 	enforcer := quota.NewEnforced(provider, limiter)
 	sessionTTL := time.Duration(cfg.SessionTTLSeconds) * time.Second
 
 	uc := usecase.New(repo, sessionStore, sessionReader, enforcer, sessionTTL, logger)
-	handler := grpcadapter.NewHandler(uc, logger)
+	handler := grpc_adapter.NewHandler(uc, logger)
 
 	rec := metrics.NewPrometheusRecord()
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
-			panicrecover.UnaryServerInterceptor(logger),
+			panic_recover.UnaryServerInterceptor(logger),
 			metrics.UnaryServerInterceptor(rec),
-			errmap.UnaryServerInterceptor(logger),
+			err_map.UnaryServerInterceptor(logger),
 			validation.UnaryServerInterceptor(),
 		),
 	)

@@ -6,7 +6,7 @@ import (
 	moneypb "google.golang.org/genproto/googleapis/type/money"
 
 	orderpb "BHLA/proto/order_service"
-	"BHLA/services/order-service/internal/domain"
+	"BHLA/services/order_service/internal/domain"
 )
 
 const currency = "USD"

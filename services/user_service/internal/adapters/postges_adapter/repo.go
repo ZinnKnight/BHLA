@@ -9,11 +9,11 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"BHLA/shared/authroles"
-	"BHLA/shared/txmanager"
+	"BHLA/shared/auth_roles"
+	"BHLA/shared/tx_manager"
 
-	"BHLA/services/user-service/internal/domain"
-	"BHLA/services/user-service/internal/ports"
+	"BHLA/services/user_service/internal/domain"
+	"BHLA/services/user_service/internal/ports"
 )
 
 var _ ports.UserRepo = (*UserRepo)(nil)
@@ -30,7 +30,7 @@ type dbConn interface {
 }
 
 func (r *UserRepo) connection(ctx context.Context) dbConn {
-	if tx, ok := txmanager.ExtractManager(ctx); ok {
+	if tx, ok := tx_manager.ExtractManager(ctx); ok {
 		return tx
 	}
 	return r.pool
@@ -66,11 +66,11 @@ func (r *UserRepo) GetByID(ctx context.Context, userID string) (*domain.User, er
 		}
 		return nil, fmt.Errorf("postgres: get user by id: %w", err)
 	}
-	u.Role = authroles.Plan(role)
+	u.Role = auth_roles.Plan(role)
 	return &u, nil
 }
 
-func (r *UserRepo) UpdatePlan(ctx context.Context, userID string, plan authroles.Plan) error {
+func (r *UserRepo) UpdatePlan(ctx context.Context, userID string, plan auth_roles.Plan) error {
 	const query = `UPDATE users SET user_role = $1 WHERE user_id = $2`
 	if _, err := r.connection(ctx).Exec(ctx, query, plan.String(), userID); err != nil {
 		return fmt.Errorf("postgres: update plan: %w", err)

@@ -8,7 +8,7 @@ import (
 	authpb "BHLA/proto/auth_service"
 	"BHLA/shared/logging"
 
-	"BHLA/services/auth-service/internal/ports"
+	"BHLA/services/auth_service/internal/ports"
 )
 
 type Handler struct {

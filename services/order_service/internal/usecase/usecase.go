@@ -12,11 +12,11 @@ import (
 	"BHLA/shared/logging"
 	"BHLA/shared/policy"
 	"BHLA/shared/quota"
-	"BHLA/shared/sagatopics"
-	"BHLA/shared/txmanager"
+	"BHLA/shared/saga_topics"
+	"BHLA/shared/tx_manager"
 
-	"BHLA/services/order-service/internal/domain"
-	"BHLA/services/order-service/internal/ports"
+	"BHLA/services/order_service/internal/domain"
+	"BHLA/services/order_service/internal/ports"
 )
 
 const (
@@ -33,12 +33,12 @@ type quotaChecker interface {
 type UseCase struct {
 	repo   ports.OrderRepo
 	events events.Emitter
-	txm    *txmanager.TxManager
+	txm    *tx_manager.TxManager
 	quota  quotaChecker
 	logger logging.Logger
 }
 
-func New(repo ports.OrderRepo, emitter events.Emitter, txm *txmanager.TxManager, q quotaChecker, logger logging.Logger) *UseCase {
+func New(repo ports.OrderRepo, emitter events.Emitter, txm *tx_manager.TxManager, q quotaChecker, logger logging.Logger) *UseCase {
 	return &UseCase{repo: repo, events: emitter, txm: txm, quota: q, logger: logger}
 }
 
@@ -79,7 +79,7 @@ func (uc *UseCase) CreateOrder(ctx context.Context, cmd domain.CreateOrderCmd) (
 	evt := events.Event{
 		AggregationType: "order",
 		AggregateID:     order.OrderID,
-		EventType:       sagatopics.EventOrderCreated,
+		EventType:       saga_topics.EventOrderCreated,
 		PayLoad:         payload,
 		IdempotencyKey:  uuid.NewString(),
 	}

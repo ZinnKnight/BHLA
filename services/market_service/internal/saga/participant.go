@@ -13,10 +13,10 @@ import (
 	"BHLA/shared/idempotency"
 	"BHLA/shared/kafka"
 	"BHLA/shared/logging"
-	"BHLA/shared/sagatopics"
-	"BHLA/shared/txmanager"
+	"BHLA/shared/saga_topics"
+	"BHLA/shared/tx_manager"
 
-	"BHLA/services/market-service/internal/domain"
+	"BHLA/services/market_service/internal/domain"
 )
 
 type reserveRepo interface {
@@ -26,19 +26,19 @@ type reserveRepo interface {
 
 type Participant struct {
 	repo   reserveRepo
-	tx     *txmanager.TxManager
+	tx     *tx_manager.TxManager
 	events events.Emitter
 	idem   *idempotency.Guard
 	logger logging.Logger
 }
 
-func NewParticipant(repo reserveRepo, tx *txmanager.TxManager, emitter events.Emitter,
+func NewParticipant(repo reserveRepo, tx *tx_manager.TxManager, emitter events.Emitter,
 	idem *idempotency.Guard, logger logging.Logger) *Participant {
 	return &Participant{repo: repo, tx: tx, events: emitter, idem: idem, logger: logger}
 }
 
 func (p *Participant) HandleReserveStock(ctx context.Context, msg kafka.Message) error {
-	if msg.Header["event_type"] != sagatopics.CommandReserveStock {
+	if msg.Header["event_type"] != saga_topics.CommandReserveStock {
 		return nil
 	}
 	key := msg.Header["idempotency_key"]
@@ -103,10 +103,10 @@ func (p *Participant) emitReply(ctx context.Context, orderID, marketID string, r
 		err       error
 	)
 	if reserved {
-		eventType = sagatopics.EventStockReserved
+		eventType = saga_topics.EventStockReserved
 		payload, err = proto.Marshal(&sagapb.StockReserved{OrderId: orderID, MarketId: marketID})
 	} else {
-		eventType = sagatopics.EventStockRejected
+		eventType = saga_topics.EventStockRejected
 		payload, err = proto.Marshal(&sagapb.StockRejected{OrderId: orderID, MarketId: marketID, Reason: reason})
 	}
 	if err != nil {

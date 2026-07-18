@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"BHLA/shared/authroles"
+	"BHLA/shared/auth_roles"
 )
 
 type Action string
@@ -26,11 +26,11 @@ type Provider interface {
 }
 
 type StaticProvider struct {
-	rules map[authroles.Plan]map[Action]Rule
+	rules map[auth_roles.Plan]map[Action]Rule
 }
 
 func (p *StaticProvider) validate() error {
-	for _, plan := range authroles.All() {
+	for _, plan := range auth_roles.All() {
 		if _, ok := p.rules[plan]; !ok {
 			return fmt.Errorf("policy: no rules for plan %q", plan)
 		}
@@ -40,13 +40,13 @@ func (p *StaticProvider) validate() error {
 
 func NewStaticProvider() (*StaticProvider, error) {
 	p := &StaticProvider{
-		rules: map[authroles.Plan]map[Action]Rule{
-			authroles.Free: {
+		rules: map[auth_roles.Plan]map[Action]Rule{
+			auth_roles.Free: {
 				ActionLogin:       {Limit: 100, Window: time.Hour},
 				ActionCreateOrder: {Limit: 10, Window: 24 * time.Hour},
 			},
-			authroles.Pro:   {},
-			authroles.Admin: {},
+			auth_roles.Pro:   {},
+			auth_roles.Admin: {},
 		},
 	}
 	if err := p.validate(); err != nil {
@@ -56,9 +56,9 @@ func NewStaticProvider() (*StaticProvider, error) {
 }
 
 func (p *StaticProvider) RuleFor(plan string, action Action) Rule {
-	actions, ok := p.rules[authroles.Plan(plan)]
+	actions, ok := p.rules[auth_roles.Plan(plan)]
 	if !ok {
-		actions = p.rules[authroles.Free]
+		actions = p.rules[auth_roles.Free]
 	}
 	if rule, ok := actions[action]; ok {
 		return rule

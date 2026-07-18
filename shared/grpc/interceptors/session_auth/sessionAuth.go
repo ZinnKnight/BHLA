@@ -76,8 +76,8 @@ func (a *Authenticator) authenticate(ctx context.Context) (context.Context, erro
 	sess, err := a.validator.Validate(ctx, sessionID)
 	if err != nil {
 		switch {
-		case errors.Is(err, sessionvalidation.ErrSessionNotFound),
-			errors.Is(err, sessionvalidation.ErrSessionInvalid):
+		case errors.Is(err, session_validation.ErrSessionNotFound),
+			errors.Is(err, session_validation.ErrSessionInvalid):
 			return nil, status.Error(codes.Unauthenticated, "invalid or expired session")
 		default:
 			a.log.LogError("session validation failed (infra)", err)
@@ -85,7 +85,7 @@ func (a *Authenticator) authenticate(ctx context.Context) (context.Context, erro
 		}
 	}
 
-	ctx = authcontext.With(ctx, authcontext.Identity{
+	ctx = auth_context.With(ctx, auth_context.Identity{
 		UserID:    sess.UserID,
 		Role:      sess.Role,
 		SessionID: sess.SessionID,

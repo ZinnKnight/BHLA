@@ -3,14 +3,14 @@ package domain
 import (
 	"errors"
 
-	"BHLA/shared/authroles"
+	"BHLA/shared/auth_roles"
 )
 
 type Credentials struct {
 	UserID       string
 	UserName     string
 	PasswordHash string
-	Role         authroles.Plan
+	Role         auth_roles.Plan
 }
 
 var (

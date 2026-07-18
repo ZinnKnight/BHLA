@@ -11,8 +11,8 @@ import (
 
 	"BHLA/shared/txmanager"
 
-	"BHLA/services/market-service/internal/domain"
-	"BHLA/services/market-service/internal/ports"
+	"BHLA/services/market_service/internal/domain"
+	"BHLA/services/market_service/internal/ports"
 )
 
 var _ ports.MarketRepo = (*MarketRepo)(nil)

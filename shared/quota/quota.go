@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"BHLA/shared/policy"
-	"BHLA/shared/ratelimiter"
+	"BHLA/shared/rate_limiter"
 )
 
 type Decision struct {
@@ -16,10 +16,10 @@ type Decision struct {
 
 type Enforced struct {
 	provider policy.Provider
-	limiter  *ratelimiter.Limiter
+	limiter  *rate_limiter.Limiter
 }
 
-func NewEnforced(provider policy.Provider, limiter *ratelimiter.Limiter) *Enforced {
+func NewEnforced(provider policy.Provider, limiter *rate_limiter.Limiter) *Enforced {
 	return &Enforced{provider: provider, limiter: limiter}
 }
 

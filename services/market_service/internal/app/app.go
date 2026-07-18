@@ -13,21 +13,21 @@ import (
 	marketpb "BHLA/proto/market_service"
 	"BHLA/shared/config"
 	"BHLA/shared/events"
-	"BHLA/shared/grpc/interceptors/errmap"
-	"BHLA/shared/grpc/interceptors/panicrecover"
-	"BHLA/shared/grpc/interceptors/sessionauth"
+	"BHLA/shared/grpc/interceptors/err_map"
+	"BHLA/shared/grpc/interceptors/panic_recover"
+	"BHLA/shared/grpc/interceptors/session_auth"
 	"BHLA/shared/grpc/interceptors/validation"
 	"BHLA/shared/idempotency"
 	"BHLA/shared/kafka"
 	"BHLA/shared/logging"
-	"BHLA/shared/logging/zapadapter"
+	"BHLA/shared/logging/zap_adapter"
 	"BHLA/shared/metrics"
 	"BHLA/shared/outbox"
 	"BHLA/shared/postgres"
-	"BHLA/shared/redisclient"
-	"BHLA/shared/sagatopics"
-	"BHLA/shared/sessionvalidation"
-	"BHLA/shared/txmanager"
+	"BHLA/shared/redis_client"
+	"BHLA/shared/saga_topics"
+	"BHLA/shared/session_validation"
+	"BHLA/shared/tx_manager"
 
 	"BHLA/services/market-service/internal/adapters/grpcadapter"
 	"BHLA/services/market-service/internal/adapters/postgresadapter"
@@ -39,7 +39,7 @@ type App struct {
 	cfg         *config.Config
 	logger      logging.Logger
 	pool        *pgxpool.Pool
-	redis       *redisclient.Client
+	redis       *redis_client.Client
 	producer    *kafka.Producer
 	relay       *outbox.Relay
 	cmdConsumer *kafka.Consumer
@@ -54,7 +54,7 @@ func New(ctx context.Context) (*App, error) {
 	if err != nil {
 		return nil, fmt.Errorf("config: %w", err)
 	}
-	logger, err := zapadapter.New()
+	logger, err := zap_adapter.New()
 	if err != nil {
 		return nil, fmt.Errorf("logger: %w", err)
 	}
@@ -70,7 +70,7 @@ func New(ctx context.Context) (*App, error) {
 		return nil, fmt.Errorf("postgres: %w", err)
 	}
 
-	redis, err := redisclient.New(ctx, redisclient.Config{
+	redis, err := redis_client.New(ctx, redisclient.Config{
 		Addr: cfg.RedisAddr, Password: cfg.RedisPassword, DB: cfg.RedisDB,
 		PoolSize: cfg.RedisPoolSize, MinIdleConns: cfg.RedisMinIdleConns,
 	})
@@ -86,12 +86,12 @@ func New(ctx context.Context) (*App, error) {
 		return nil, fmt.Errorf("kafka producer: %w", err)
 	}
 
-	txm := txmanager.NewTxManager(pool)
+	txm := tx_manager.NewTxManager(pool)
 
 	topicResolver := func(e events.Event) string {
 		switch e.EventType {
-		case sagatopics.EventStockReserved, sagatopics.EventStockRejected:
-			return sagatopics.TopicSagaReplies
+		case saga_topics.EventStockReserved, saga_topics.EventStockRejected:
+			return saga_topics.TopicSagaReplies
 		default:
 			return e.AggregationType + ".events"
 		}
@@ -105,7 +105,7 @@ func New(ctx context.Context) (*App, error) {
 	cmdConsumer, err := kafka.NewConsumer(ctx, kafka.ConsumerConfig{
 		Brokers: cfg.KafkaBrokers,
 		Group:   "market-reserve",
-		Topics:  []string{sagatopics.TopicSagaCommands},
+		Topics:  []string{saga_topics.TopicSagaCommands},
 	}, logger)
 	if err != nil {
 		producer.Close()
@@ -118,14 +118,14 @@ func New(ctx context.Context) (*App, error) {
 	handler := grpcadapter.NewHandler(uc, logger)
 
 	rec := metrics.NewPrometheusRecord()
-	validator := sessionvalidation.NewRedisValidator(redis.Client)
-	authn := sessionauth.New(validator, logger)
+	validator := session_validation.NewRedisValidator(redis.Client)
+	authn := session_auth.New(validator, logger)
 
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
-			panicrecover.UnaryServerInterceptor(logger),
+			panic_recover.UnaryServerInterceptor(logger),
 			metrics.UnaryServerInterceptor(rec),
-			errmap.UnaryServerInterceptor(logger),
+			err_map.UnaryServerInterceptor(logger),
 			validation.UnaryServerInterceptor(),
 			authn.UnaryServerInterceptor(),
 		),

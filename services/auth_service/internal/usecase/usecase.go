@@ -9,12 +9,12 @@ import (
 	"github.com/google/uuid"
 
 	"BHLA/shared/logging"
-	"BHLA/shared/passwordhash"
+	"BHLA/shared/password_hash"
 	"BHLA/shared/policy"
-	"BHLA/shared/sessionvalidation"
+	"BHLA/shared/session_validation"
 
-	"BHLA/services/auth-service/internal/domain"
-	"BHLA/services/auth-service/internal/ports"
+	"BHLA/services/auth_service/internal/domain"
+	"BHLA/services/auth_service/internal/ports"
 )
 
 var _ ports.AuthInbound = (*AuthUseCase)(nil)
@@ -51,15 +51,15 @@ func (uc *AuthUseCase) Login(ctx context.Context, userName, userPassword string)
 		}
 	}
 
-	if err := passwordhash.Verify(cred.PasswordHash, userPassword); err != nil {
+	if err := password_hash.Verify(cred.PasswordHash, userPassword); err != nil {
 		return ports.LoginResult{}, domain.ErrInvalidCredentials
 	}
 
-	sess := sessionvalidation.Session{
+	sess := session_validation.Session{
 		SessionID:  uuid.NewString(),
 		UserID:     cred.UserID,
 		Role:       cred.Role.String(),
-		State:      sessionvalidation.StateActive,
+		State:      session_validation.StateActive,
 		ValidUntil: time.Now().Add(uc.sessionTTL),
 	}
 	if err := uc.sessions.Save(ctx, sess, uc.sessionTTL); err != nil {
@@ -68,6 +68,6 @@ func (uc *AuthUseCase) Login(ctx context.Context, userName, userPassword string)
 	return ports.LoginResult{UserID: cred.UserID, SessionID: sess.SessionID}, nil
 }
 
-func (uc *AuthUseCase) ValidateSession(ctx context.Context, sessionID string) (sessionvalidation.Session, error) {
+func (uc *AuthUseCase) ValidateSession(ctx context.Context, sessionID string) (session_validation.Session, error) {
 	return uc.reader.Validate(ctx, sessionID)
 }

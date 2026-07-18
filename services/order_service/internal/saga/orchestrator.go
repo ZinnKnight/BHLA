@@ -12,10 +12,10 @@ import (
 	"BHLA/shared/idempotency"
 	"BHLA/shared/kafka"
 	"BHLA/shared/logging"
-	"BHLA/shared/sagatopics"
-	"BHLA/shared/txmanager"
+	"BHLA/shared/saga_topics"
+	"BHLA/shared/tx_manager"
 
-	"BHLA/services/order-service/internal/domain"
+	"BHLA/services/order_service/internal/domain"
 )
 
 type orderStatusRepo interface {
@@ -24,24 +24,24 @@ type orderStatusRepo interface {
 
 type Orchestrator struct {
 	repo   orderStatusRepo
-	tx     *txmanager.TxManager
+	tx     *tx_manager.TxManager
 	events events.Emitter
 	idem   *idempotency.Guard
 	logger logging.Logger
 }
 
-func NewOrchestrator(repo orderStatusRepo, tx *txmanager.TxManager, emitter events.Emitter,
+func NewOrchestrator(repo orderStatusRepo, tx *tx_manager.TxManager, emitter events.Emitter,
 	idem *idempotency.Guard, logger logging.Logger) *Orchestrator {
 	return &Orchestrator{repo: repo, tx: tx, events: emitter, idem: idem, logger: logger}
 }
 
 func (o *Orchestrator) Handle(ctx context.Context, msg kafka.Message) error {
 	switch msg.Header["event_type"] {
-	case sagatopics.EventOrderCreated:
+	case saga_topics.EventOrderCreated:
 		return o.handleOrderCreated(ctx, msg)
-	case sagatopics.EventStockReserved:
+	case saga_topics.EventStockReserved:
 		return o.handleReply(ctx, msg, true)
-	case sagatopics.EventStockRejected:
+	case saga_topics.EventStockRejected:
 		return o.handleReply(ctx, msg, false)
 	default:
 		return nil
@@ -86,7 +86,7 @@ func (o *Orchestrator) handleOrderCreated(ctx context.Context, msg kafka.Message
 		return o.events.Emit(ctx, events.Event{
 			AggregationType: "order",
 			AggregateID:     created.OrderId,
-			EventType:       sagatopics.CommandReserveStock,
+			EventType:       saga_topics.CommandReserveStock,
 			PayLoad:         payload,
 			IdempotencyKey:  uuid.NewString(),
 		})
@@ -130,7 +130,7 @@ func (o *Orchestrator) handleReply(ctx context.Context, msg kafka.Message, reser
 		return o.events.Emit(ctx, events.Event{
 			AggregationType: "order",
 			AggregateID:     orderID,
-			EventType:       sagatopics.EventOrderStatusChanged,
+			EventType:       saga_topics.EventOrderStatusChanged,
 			PayLoad:         payload,
 			IdempotencyKey:  uuid.NewString(),
 		})

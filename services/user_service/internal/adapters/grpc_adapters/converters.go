@@ -2,30 +2,30 @@ package grpc_adapters
 
 import (
 	userpb "BHLA/proto/user_service"
-	"BHLA/shared/authroles"
+	"BHLA/shared/auth_roles"
 )
 
 func planToProto(p authroles.Plan) userpb.UserRoles {
 	switch p {
-	case authroles.Free:
+	case auth_roles.Free:
 		return userpb.UserRoles_FREE_PLAN_USER
-	case authroles.Pro:
+	case auth_roles.Pro:
 		return userpb.UserRoles_PRO_PLAN_USER
-	case authroles.Admin:
+	case auth_roles.Admin:
 		return userpb.UserRoles_ADMIN
 	default:
 		return userpb.UserRoles_UNAUTHORISED_USER
 	}
 }
 
-func protoToPlan(r userpb.UserRoles) (authroles.Plan, bool) {
+func protoToPlan(r userpb.UserRoles) (auth_roles.Plan, bool) {
 	switch r {
 	case userpb.UserRoles_FREE_PLAN_USER:
-		return authroles.Free, true
+		return auth_roles.Free, true
 	case userpb.UserRoles_PRO_PLAN_USER:
-		return authroles.Pro, true
+		return auth_roles.Pro, true
 	case userpb.UserRoles_ADMIN:
-		return authroles.Admin, true
+		return auth_roles.Admin, true
 	default:
 		return "", false
 	}

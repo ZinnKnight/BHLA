@@ -1,11 +1,11 @@
 package grpc_adapter
 
 import (
-	"BHLA/shared/grpc/interceptors/errmap"
+	"BHLA/shared/grpc/interceptors/err_map"
 
-	"BHLA/services/market-service/internal/domain"
+	"BHLA/services/market_service/internal/domain"
 )
 
 func init() {
-	errmap.RegisterError(domain.ErrMarketNotFound, errmap.NotFound, "рынок не найден")
+	err_map.RegisterError(domain.ErrMarketNotFound, err_map.NotFound, "рынок не найден")
 }

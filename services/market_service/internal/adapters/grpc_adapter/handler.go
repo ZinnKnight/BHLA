@@ -6,7 +6,7 @@ import (
 	marketpb "BHLA/proto/market_service"
 	"BHLA/shared/logging"
 
-	"BHLA/services/market-service/internal/ports"
+	"BHLA/services/market_service/internal/ports"
 )
 
 type Handler struct {

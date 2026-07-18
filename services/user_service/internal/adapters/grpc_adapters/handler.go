@@ -4,13 +4,13 @@ import (
 	"context"
 
 	userpb "BHLA/proto/user_service"
-	"BHLA/shared/authcontext"
-	"BHLA/shared/authroles"
-	"BHLA/shared/grpc/interceptors/errmap"
+	"BHLA/shared/auth_context"
+	"BHLA/shared/auth_roles"
+	"BHLA/shared/grpc/interceptors/err_map"
 	"BHLA/shared/logging"
 
-	"BHLA/services/user-service/internal/domain"
-	"BHLA/services/user-service/internal/ports"
+	"BHLA/services/user_service/internal/domain"
+	"BHLA/services/user_service/internal/ports"
 )
 
 type Handler struct {
@@ -38,7 +38,7 @@ func (h *Handler) UserRegistration(ctx context.Context, req *userpb.RegisterRequ
 }
 
 func (h *Handler) GetUserData(ctx context.Context, _ *userpb.GetUserDataRequest) (*userpb.GetUserDataResponse, error) {
-	id, ok := authcontext.From(ctx)
+	id, ok := auth_context.From(ctx)
 	if !ok {
 		return nil, errmap.NewError(errmap.Unauthenticated, "требуется авторизация", nil)
 	}
@@ -56,7 +56,7 @@ func (h *Handler) GetUserData(ctx context.Context, _ *userpb.GetUserDataRequest)
 }
 
 func (h *Handler) PlanChange(ctx context.Context, req *userpb.PlanChangeRequest) (*userpb.PlanChangeResponse, error) {
-	id, ok := authcontext.From(ctx)
+	id, ok := auth_context.From(ctx)
 	if !ok {
 		return nil, errmap.NewError(errmap.Unauthenticated, "требуется авторизация", nil)
 	}
@@ -68,7 +68,7 @@ func (h *Handler) PlanChange(ctx context.Context, req *userpb.PlanChangeRequest)
 	if !ok || !domain.CanSelfPlanChange(newPlan) {
 		return nil, errmap.NewError(errmap.PermissionDenied, "доступны только тарифы Free и Pro", nil)
 	}
-	if newPlan == authroles.Pro && !h.prereq.UpgradeAgree(ctx, id.UserID) {
+	if newPlan == auth_roles.Pro && !h.prereq.UpgradeAgree(ctx, id.UserID) {
 		return nil, errmap.NewError(errmap.FailedPrecondition, "для перехода на Pro требуется выполнение условия", nil)
 	}
 

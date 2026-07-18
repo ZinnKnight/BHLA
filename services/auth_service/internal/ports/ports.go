@@ -6,9 +6,9 @@ import (
 
 	"BHLA/shared/policy"
 	"BHLA/shared/quota"
-	"BHLA/shared/sessionvalidation"
+	"BHLA/shared/session_validation"
 
-	"BHLA/services/auth-service/internal/domain"
+	"BHLA/services/auth_service/internal/domain"
 )
 
 type LoginResult struct {
@@ -18,7 +18,7 @@ type LoginResult struct {
 
 type AuthInbound interface {
 	Login(ctx context.Context, userName, userPassword string) (LoginResult, error)
-	ValidateSession(ctx context.Context, sessionID string) (sessionvalidation.Session, error)
+	ValidateSession(ctx context.Context, sessionID string) (session_validation.Session, error)
 }
 
 type CredentialRepo interface {
@@ -26,11 +26,11 @@ type CredentialRepo interface {
 }
 
 type SessionWriter interface {
-	Save(ctx context.Context, sess sessionvalidation.Session, ttl time.Duration) error
+	Save(ctx context.Context, sess session_validation.Session, ttl time.Duration) error
 }
 
 type SessionReader interface {
-	Validate(ctx context.Context, sessionID string) (sessionvalidation.Session, error)
+	Validate(ctx context.Context, sessionID string) (session_validation.Session, error)
 }
 
 type QuotaChecker interface {

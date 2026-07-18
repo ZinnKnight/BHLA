@@ -1,17 +1,17 @@
 package grpc_adapter
 
 import (
-	"BHLA/shared/grpc/interceptors/errmap"
+	"BHLA/shared/grpc/interceptors/err_map"
 
-	"BHLA/services/order-service/internal/domain"
+	"BHLA/services/order_service/internal/domain"
 )
 
 func init() {
-	errmap.RegisterError(domain.ErrOrderNotFound, errmap.NotFound, "заказ не найден")
-	errmap.RegisterError(domain.ErrOrderQuotaExceeded, errmap.RateLimited, "достигнут лимит заказов")
-	errmap.RegisterError(domain.ErrInvalidUserID, errmap.Invalid, "некорректный идентификатор пользователя")
-	errmap.RegisterError(domain.ErrInvalidMarketID, errmap.Invalid, "некорректный идентификатор рынка")
-	errmap.RegisterError(domain.ErrInvalidPrice, errmap.Invalid, "некорректная цена заказа")
-	errmap.RegisterError(domain.ErrInvalidAmount, errmap.Invalid, "некорректное количество в заказе")
-	errmap.RegisterError(domain.ErrOrderAlreadyExists, errmap.AlreadyExists, "заказ уже существует")
+	err_map.RegisterError(domain.ErrOrderNotFound, err_map.NotFound, "заказ не найден")
+	err_map.RegisterError(domain.ErrOrderQuotaExceeded, err_map.RateLimited, "достигнут лимит заказов")
+	err_map.RegisterError(domain.ErrInvalidUserID, err_map.Invalid, "некорректный идентификатор пользователя")
+	err_map.RegisterError(domain.ErrInvalidMarketID, err_map.Invalid, "некорректный идентификатор рынка")
+	err_map.RegisterError(domain.ErrInvalidPrice, err_map.Invalid, "некорректная цена заказа")
+	err_map.RegisterError(domain.ErrInvalidAmount, err_map.Invalid, "некорректное количество в заказе")
+	err_map.RegisterError(domain.ErrOrderAlreadyExists, err_map.AlreadyExists, "заказ уже существует")
 }

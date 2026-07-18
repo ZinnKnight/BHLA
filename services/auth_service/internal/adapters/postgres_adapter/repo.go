@@ -8,10 +8,10 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"BHLA/shared/authroles"
+	"BHLA/shared/auth_roles"
 
-	"BHLA/services/auth-service/internal/domain"
-	"BHLA/services/auth-service/internal/ports"
+	"BHLA/services/auth_service/internal/domain"
+	"BHLA/services/auth_service/internal/ports"
 )
 
 var _ ports.CredentialRepo = (*CredentialRepo)(nil)
@@ -36,6 +36,6 @@ func (r *CredentialRepo) GetByName(ctx context.Context, userName string) (*domai
 		}
 		return nil, fmt.Errorf("postgres: get credentials: %w", err)
 	}
-	c.Role = authroles.Plan(role)
+	c.Role = auth_roles.Plan(role)
 	return &c, nil
 }

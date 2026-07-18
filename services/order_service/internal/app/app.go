@@ -18,37 +18,37 @@ import (
 	sagapb "BHLA/proto/saga_events"
 	"BHLA/shared/config"
 	"BHLA/shared/events"
-	"BHLA/shared/grpc/interceptors/errmap"
-	"BHLA/shared/grpc/interceptors/panicrecover"
-	"BHLA/shared/grpc/interceptors/sessionauth"
+	"BHLA/shared/grpc/interceptors/err_map"
+	"BHLA/shared/grpc/interceptors/panic_recover"
+	"BHLA/shared/grpc/interceptors/session_auth"
 	"BHLA/shared/grpc/interceptors/validation"
 	"BHLA/shared/idempotency"
 	"BHLA/shared/kafka"
 	"BHLA/shared/logging"
-	"BHLA/shared/logging/zapadapter"
+	"BHLA/shared/logging/zap_adapter"
 	"BHLA/shared/metrics"
 	"BHLA/shared/outbox"
 	"BHLA/shared/policy"
 	"BHLA/shared/postgres"
 	"BHLA/shared/quota"
-	"BHLA/shared/ratelimiter"
-	"BHLA/shared/redisclient"
-	"BHLA/shared/sagatopics"
-	"BHLA/shared/sessionvalidation"
-	"BHLA/shared/txmanager"
+	"BHLA/shared/rate_limiter"
+	"BHLA/shared/redis_client"
+	"BHLA/shared/saga_topics"
+	"BHLA/shared/session_validation"
+	"BHLA/shared/tx_manager"
 
-	"BHLA/services/order-service/internal/adapters/grpcadapter"
-	"BHLA/services/order-service/internal/adapters/postgresadapter"
-	"BHLA/services/order-service/internal/saga"
-	"BHLA/services/order-service/internal/streaming"
-	"BHLA/services/order-service/internal/usecase"
+	"BHLA/services/order_service/internal/adapters/grpc_adapter"
+	"BHLA/services/order_service/internal/adapters/postgres_adapter"
+	"BHLA/services/order_service/internal/saga"
+	"BHLA/services/order_service/internal/streaming"
+	"BHLA/services/order_service/internal/usecase"
 )
 
 type App struct {
 	cfg            *config.Config
 	logger         logging.Logger
 	pool           *pgxpool.Pool
-	redis          *redisclient.Client
+	redis          *redis_client.Client
 	producer       *kafka.Producer
 	relay          *outbox.Relay
 	orderConsumer  *kafka.Consumer
@@ -65,7 +65,7 @@ func New(ctx context.Context) (*App, error) {
 	if err != nil {
 		return nil, fmt.Errorf("config: %w", err)
 	}
-	logger, err := zapadapter.New()
+	logger, err := zap_adapter.New()
 	if err != nil {
 		return nil, fmt.Errorf("logger: %w", err)
 	}
@@ -85,7 +85,7 @@ func New(ctx context.Context) (*App, error) {
 		return nil, fmt.Errorf("postgres: %w", err)
 	}
 
-	redis, err := redisclient.New(ctx, redisclient.Config{
+	redis, err := redis_client.New(ctx, redis_client.Config{
 		Addr: cfg.RedisAddr, Password: cfg.RedisPassword, DB: cfg.RedisDB,
 		PoolSize: cfg.RedisPoolSize, MinIdleConns: cfg.RedisMinIdleConns,
 	})
@@ -101,16 +101,16 @@ func New(ctx context.Context) (*App, error) {
 		return nil, fmt.Errorf("kafka producer: %w", err)
 	}
 
-	txm := txmanager.NewTxManager(pool)
+	txm := tx_manager.NewTxManager(pool)
 
 	topicResolver := func(e events.Event) string {
 		switch e.EventType {
-		case sagatopics.EventOrderCreated:
-			return sagatopics.TopicOrderEvents
-		case sagatopics.CommandReserveStock:
-			return sagatopics.TopicSagaCommands
-		case sagatopics.EventOrderStatusChanged:
-			return sagatopics.TopicOrderStatus
+		case saga_topics.EventOrderCreated:
+			return saga_topics.TopicOrderEvents
+		case saga_topics.CommandReserveStock:
+			return saga_topics.TopicSagaCommands
+		case saga_topics.EventOrderStatusChanged:
+			return saga_topics.TopicOrderStatus
 		default:
 			return e.AggregationType + ".events"
 		}
@@ -118,13 +118,13 @@ func New(ctx context.Context) (*App, error) {
 	writer := outbox.NewWriter(pool, topicResolver)
 	relay := outbox.NewRelay(pool, producer, logger, 100, time.Second)
 
-	orderRepo := postgresadapter.NewOrderRepo(pool)
+	orderRepo := postgres_adapter.NewOrderRepo(pool)
 	orchestrator := saga.NewOrchestrator(orderRepo, txm, writer, idempotency.NewGuard(pool, "order-orchestrator"), logger)
 
 	orderConsumer, err := kafka.NewConsumer(ctx, kafka.ConsumerConfig{
 		Brokers: cfg.KafkaBrokers,
 		Group:   "order-orchestrator",
-		Topics:  []string{sagatopics.TopicOrderEvents, sagatopics.TopicSagaReplies},
+		Topics:  []string{saga_topics.TopicOrderEvents, saga_topics.TopicSagaReplies},
 	}, logger)
 	if err != nil {
 		producer.Close()
@@ -138,7 +138,7 @@ func New(ctx context.Context) (*App, error) {
 	statusConsumer, err := kafka.NewConsumer(ctx, kafka.ConsumerConfig{
 		Brokers:    cfg.KafkaBrokers,
 		Group:      "order-status-stream-" + uuid.NewString(),
-		Topics:     []string{sagatopics.TopicOrderStatus},
+		Topics:     []string{saga_topics.TopicOrderStatus},
 		StartAtEnd: true,
 	}, logger)
 	if err != nil {
@@ -158,28 +158,28 @@ func New(ctx context.Context) (*App, error) {
 		pool.Close()
 		return nil, fmt.Errorf("policy: %w", err)
 	}
-	limiter := ratelimiter.NewRateLimiter(redis.Client, cfg.RateLimitPerMin, time.Minute)
+	limiter := rate_limiter.NewRateLimiter(redis.Client, cfg.RateLimitPerMin, time.Minute)
 	enforcer := quota.NewEnforced(provider, limiter)
 
 	uc := usecase.New(orderRepo, writer, txm, enforcer, logger)
-	handler := grpcadapter.NewHandler(uc, hub, logger)
+	handler := grpc_adapter.NewHandler(uc, hub, logger)
 
 	rec := metrics.NewPrometheusRecord()
-	validator := sessionvalidation.NewRedisValidator(redis.Client)
-	authn := sessionauth.New(validator, logger)
+	validator := session_validation.NewRedisValidator(redis.Client)
+	authn := session_auth.New(validator, logger)
 
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
-			panicrecover.UnaryServerInterceptor(logger),
+			panic_recover.UnaryServerInterceptor(logger),
 			metrics.UnaryServerInterceptor(rec),
-			errmap.UnaryServerInterceptor(logger),
+			err_map.UnaryServerInterceptor(logger),
 			validation.UnaryServerInterceptor(),
 			authn.UnaryServerInterceptor(),
 		),
 		grpc.ChainStreamInterceptor(
-			panicrecover.StreamServerInterceptor(logger),
+			panic_recover.StreamServerInterceptor(logger),
 			metrics.StreamServerInterceptor(rec),
-			errmap.StreamServerInterceptor(logger),
+			err_map.StreamServerInterceptor(logger),
 			authn.StreamServerInterceptor(),
 		),
 	)
@@ -203,7 +203,7 @@ func New(ctx context.Context) (*App, error) {
 }
 
 func (a *App) publishStatusUpdate(_ context.Context, msg kafka.Message) error {
-	if msg.Header["event_type"] != sagatopics.EventOrderStatusChanged {
+	if msg.Header["event_type"] != saga_topics.EventOrderStatusChanged {
 		return nil
 	}
 	var p sagapb.OrderStatusChanged

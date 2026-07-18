@@ -4,16 +4,16 @@ import (
 	"context"
 
 	orderpb "BHLA/proto/order_service"
-	"BHLA/shared/authcontext"
-	"BHLA/shared/grpc/interceptors/errmap"
+	"BHLA/shared/auth_context"
+	"BHLA/shared/grpc/interceptors/err_map"
 	"BHLA/shared/logging"
 
-	"BHLA/services/order-service/internal/domain"
-	"BHLA/services/order-service/internal/ports"
-	"BHLA/services/order-service/internal/streaming"
+	"BHLA/services/order_service/internal/domain"
+	"BHLA/services/order_service/internal/ports"
+	"BHLA/services/order_service/internal/streaming"
 )
 
-var errUnauthenticated = errmap.NewError(errmap.Unauthenticated, "требуется авторизация", nil)
+var errUnauthenticated = err_map.NewError(err_map.Unauthenticated, "требуется авторизация", nil)
 
 type Handler struct {
 	orderpb.UnimplementedOrderServiceServer
@@ -27,14 +27,14 @@ func NewHandler(uc ports.OrderInbound, hub *streaming.Hub, logger logging.Logger
 }
 
 func (h *Handler) CreateOrder(ctx context.Context, req *orderpb.CreateOrderRequest) (*orderpb.CreateOrderResponse, error) {
-	id, ok := authcontext.From(ctx)
+	id, ok := auth_context.From(ctx)
 	if !ok {
 		return nil, errUnauthenticated
 	}
 
 	amount, err := decimalPBToDec(req.GetAmount())
 	if err != nil {
-		return nil, errmap.NewError(errmap.Invalid, "некорректное количество", err)
+		return nil, err_map.NewError(err_map.Invalid, "некорректное количество", err)
 	}
 
 	cmd := domain.CreateOrderCmd{
@@ -52,7 +52,7 @@ func (h *Handler) CreateOrder(ctx context.Context, req *orderpb.CreateOrderReque
 }
 
 func (h *Handler) GetOrderStatusByID(ctx context.Context, req *orderpb.OrderStatusByIDRequest) (*orderpb.OrderStatusByIDResponse, error) {
-	id, ok := authcontext.From(ctx)
+	id, ok := auth_context.From(ctx)
 	if !ok {
 		return nil, errUnauthenticated
 	}
@@ -64,7 +64,7 @@ func (h *Handler) GetOrderStatusByID(ctx context.Context, req *orderpb.OrderStat
 }
 
 func (h *Handler) GetOrderStatusAll(ctx context.Context, req *orderpb.OrderStatusAllRequest) (*orderpb.OrderStatusAllResponse, error) {
-	id, ok := authcontext.From(ctx)
+	id, ok := auth_context.From(ctx)
 	if !ok {
 		return nil, errUnauthenticated
 	}
@@ -81,7 +81,7 @@ func (h *Handler) GetOrderStatusAll(ctx context.Context, req *orderpb.OrderStatu
 
 func (h *Handler) StreamOrderUpdates(req *orderpb.StreamOrderRequest, stream orderpb.OrderService_StreamOrderUpdatesServer) error {
 	ctx := stream.Context()
-	id, ok := authcontext.From(ctx)
+	id, ok := auth_context.From(ctx)
 	if !ok {
 		return errUnauthenticated
 	}

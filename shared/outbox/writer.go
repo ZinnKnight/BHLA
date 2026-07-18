@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"BHLA/shared/events"
-	"BHLA/shared/txmanager"
+	"BHLA/shared/tx_manager"
 )
 
 type TopicResolver func(e events.Event) string
@@ -30,7 +30,7 @@ type dbExec interface {
 }
 
 func (w *Writer) connection(ctx context.Context) dbExec {
-	if tx, ok := txmanager.ExtractManager(ctx); ok {
+	if tx, ok := tx_manager.ExtractManager(ctx); ok {
 		return tx
 	}
 	return w.pool

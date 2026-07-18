@@ -3,7 +3,7 @@ package ports
 import (
 	"context"
 
-	"BHLA/services/market-service/internal/domain"
+	"BHLA/services/market_service/internal/domain"
 )
 
 type MarketInbound interface {

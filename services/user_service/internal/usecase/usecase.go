@@ -7,14 +7,14 @@ import (
 
 	"github.com/google/uuid"
 
-	"BHLA/shared/authroles"
+	"BHLA/shared/auth_roles"
 	"BHLA/shared/events"
 	"BHLA/shared/logging"
-	"BHLA/shared/passwordhash"
-	"BHLA/shared/txmanager"
+	"BHLA/shared/password_hash"
+	"BHLA/shared/tx_manager"
 
-	"BHLA/services/user-service/internal/domain"
-	"BHLA/services/user-service/internal/ports"
+	"BHLA/services/user_service/internal/domain"
+	"BHLA/services/user_service/internal/ports"
 )
 
 var _ ports.UserInbound = (*UserUseCase)(nil)
@@ -22,11 +22,11 @@ var _ ports.UserInbound = (*UserUseCase)(nil)
 type UserUseCase struct {
 	repo   ports.UserRepo
 	events events.Emitter
-	txm    *txmanager.TxManager
+	txm    *tx_manager.TxManager
 	logger logging.Logger
 }
 
-func New(repo ports.UserRepo, emitter events.Emitter, txm *txmanager.TxManager, logger logging.Logger) *UserUseCase {
+func New(repo ports.UserRepo, emitter events.Emitter, txm *tx_manager.TxManager, logger logging.Logger) *UserUseCase {
 	return &UserUseCase{repo: repo, events: emitter, txm: txm, logger: logger}
 }
 
@@ -35,13 +35,13 @@ func (uc *UserUseCase) Register(ctx context.Context, userName, userPassword stri
 		UserID:       uuid.NewString(),
 		UserName:     userName,
 		UserPassword: userPassword,
-		Role:         authroles.Free,
+		Role:         auth_roles.Free,
 	}
 	if err := user.ValidateUser(); err != nil {
 		return nil, fmt.Errorf("usecase register: %w", err)
 	}
 
-	hashed, err := passwordhash.Hash(user.UserPassword)
+	hashed, err := password_hash.Hash(user.UserPassword)
 	if err != nil {
 		return nil, fmt.Errorf("usecase register: hash password: %w", err)
 	}
@@ -79,7 +79,7 @@ func (uc *UserUseCase) GetUser(ctx context.Context, userID string) (*domain.User
 	return user, nil
 }
 
-func (uc *UserUseCase) PlanChange(ctx context.Context, userID string, newPlan authroles.Plan) (*domain.User, error) {
+func (uc *UserUseCase) PlanChange(ctx context.Context, userID string, newPlan auth_roles.Plan) (*domain.User, error) {
 	var updated *domain.User
 	err := uc.txm.Do(ctx, func(ctx context.Context) error {
 		user, err := uc.repo.GetByID(ctx, userID)

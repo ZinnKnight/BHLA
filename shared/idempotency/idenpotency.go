@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"BHLA/shared/txmanager"
+	"BHLA/shared/tx_manager"
 )
 
 type Guard struct {
@@ -24,7 +24,7 @@ type dbExec interface {
 }
 
 func (g *Guard) connection(ctx context.Context) dbExec {
-	if tx, ok := txmanager.ExtractManager(ctx); ok {
+	if tx, ok := tx_manager.ExtractManager(ctx); ok {
 		return tx
 	}
 	return g.pool

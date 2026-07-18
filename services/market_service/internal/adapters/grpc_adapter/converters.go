@@ -2,7 +2,7 @@ package grpc_adapter
 
 import (
 	marketpb "BHLA/proto/market_service"
-	"BHLA/services/market-service/internal/domain"
+	"BHLA/services/market_service/internal/domain"
 )
 
 func marketToProto(m *domain.Market) *marketpb.Market {

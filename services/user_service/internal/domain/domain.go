@@ -3,7 +3,7 @@ package domain
 import (
 	"errors"
 
-	"BHLA/shared/authroles"
+	"BHLA/shared/auth_roles"
 )
 
 type User struct {
@@ -23,8 +23,8 @@ func (u *User) ValidateUser() error {
 	return nil
 }
 
-func CanSelfPlanChange(p authroles.Plan) bool {
-	return p == authroles.Free || p == authroles.Pro
+func CanSelfPlanChange(p auth_roles.Plan) bool {
+	return p == auth_roles.Free || p == auth_roles.Pro
 }
 
 var (

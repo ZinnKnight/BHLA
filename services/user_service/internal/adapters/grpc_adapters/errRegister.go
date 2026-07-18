@@ -1,15 +1,15 @@
 package grpc_adapters
 
 import (
-	"BHLA/shared/grpc/interceptors/errmap"
+	"BHLA/shared/grpc/interceptors/err_map"
 
-	"BHLA/services/user-service/internal/domain"
+	"BHLA/services/user_service/internal/domain"
 )
 
 func init() {
-	errmap.RegisterError(domain.ErrUserNotFound, errmap.NotFound, "пользователь не найден")
-	errmap.RegisterError(domain.ErrUserAlreadyExists, errmap.AlreadyExists, "пользователь уже существует")
-	errmap.RegisterError(domain.ErrEmptyName, errmap.Invalid, "имя пользователя не может быть пустым")
-	errmap.RegisterError(domain.ErrEmptyPassword, errmap.Invalid, "пароль не может быть пустым")
-	errmap.RegisterError(domain.ErrInvalidPlan, errmap.Invalid, "некорректный тариф")
+	err_map.RegisterError(domain.ErrUserNotFound, err_map.NotFound, "пользователь не найден")
+	err_map.RegisterError(domain.ErrUserAlreadyExists, err_map.AlreadyExists, "пользователь уже существует")
+	err_map.RegisterError(domain.ErrEmptyName, err_map.Invalid, "имя пользователя не может быть пустым")
+	err_map.RegisterError(domain.ErrEmptyPassword, err_map.Invalid, "пароль не может быть пустым")
+	err_map.RegisterError(domain.ErrInvalidPlan, err_map.Invalid, "некорректный тариф")
 }
