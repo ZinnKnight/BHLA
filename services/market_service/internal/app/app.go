@@ -46,7 +46,7 @@ type App struct {
 	participant *saga.Participant
 	grpcServer  *grpc.Server
 	listener    net.Listener
-	metricsRec  *metrics.PrometheusRecord
+	metricsRec  *metrics.PrometheusRecorder
 }
 
 func New(ctx context.Context) (*App, error) {
@@ -70,7 +70,7 @@ func New(ctx context.Context) (*App, error) {
 		return nil, fmt.Errorf("postgres: %w", err)
 	}
 
-	redis, err := redis_client.New(ctx, redisclient.Config{
+	redis, err := redis_client.New(ctx, redis_client.Config{
 		Addr: cfg.RedisAddr, Password: cfg.RedisPassword, DB: cfg.RedisDB,
 		PoolSize: cfg.RedisPoolSize, MinIdleConns: cfg.RedisMinIdleConns,
 	})
@@ -117,7 +117,7 @@ func New(ctx context.Context) (*App, error) {
 	uc := usecase.New(marketRepo, logger)
 	handler := grpc_adapter.NewHandler(uc, logger)
 
-	rec := metrics.NewPrometheusRecord()
+	rec := metrics.NewPrometheusRecorder()
 	validator := session_validation.NewRedisValidator(redis.Client)
 	authn := session_auth.New(validator, logger)
 
@@ -169,7 +169,7 @@ func (a *App) Run(ctx context.Context) error {
 	workerCtx, workerCancel := context.WithCancel(ctx)
 
 	go func() {
-		if err := metrics.StartMetricsServer(workerCtx, a.cfg.MetricsPort, a.metricsRec.Registry()); err != nil {
+		if err := metrics.StartMetricsServer(workerCtx, a.cfg.MetricsPort, a.metricsRec.Handler()); err != nil {
 			a.logger.LogError("metrics server stopped", logging.Err(err))
 		}
 	}()

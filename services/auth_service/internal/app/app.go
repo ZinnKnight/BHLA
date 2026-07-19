@@ -35,7 +35,7 @@ type App struct {
 	pool       *pgxpool.Pool
 	redis      *redis_client.Client
 	grpcServer *grpc.Server
-	metricsRec *metrics.
+	metricsRec *metrics.PrometheusRecorder
 }
 
 func New(ctx context.Context) (*App, error) {
@@ -82,14 +82,14 @@ func New(ctx context.Context) (*App, error) {
 	repo := postgres_adapter.NewCredentialRepo(pool)
 	sessionStore := session_validation.NewStore(rdb.Client)
 	sessionReader := session_validation.NewRedisValidator(rdb.Client)
-	limiter := rate_limiter.NewRateLimiter(rdb.Client, cfg.RateLimitPerMin, time.Minute) // окно берётся из quota на AllowKey
+	limiter := rate_limiter.NewRateLimiter(rdb.Client, cfg.RateLimitPerMin, time.Minute)
 	enforcer := quota.NewEnforced(provider, limiter)
 	sessionTTL := time.Duration(cfg.SessionTTLSeconds) * time.Second
 
 	uc := usecase.New(repo, sessionStore, sessionReader, enforcer, sessionTTL, logger)
 	handler := grpc_adapter.NewHandler(uc, logger)
 
-	rec := metrics.NewPrometheusRecord()
+	rec := metrics.NewPrometheusRecorder()
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			panic_recover.UnaryServerInterceptor(logger),
@@ -110,7 +110,7 @@ func (a *App) Run(ctx context.Context) error {
 	}
 
 	go func() {
-		if err := metrics.StartMetricsServer(ctx, a.cfg.MetricsPort, a.metricsRec.Registry()); err != nil {
+		if err := metrics.StartMetricsServer(ctx, a.cfg.MetricsPort, a.metricsRec.Handler()); err != nil {
 			a.logger.LogError("metrics server stopped", logging.Err(err))
 		}
 	}()

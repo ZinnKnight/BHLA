@@ -31,7 +31,6 @@ func (h *Handler) UserRegistration(ctx context.Context, req *userpb.RegisterRequ
 		return nil, err
 	}
 	return &userpb.RegisterResponse{
-		UserId:   user.UserID,
 		UserName: user.UserName,
 		UserRole: planToProto(user.Role),
 	}, nil

@@ -1,6 +1,7 @@
 package session_auth
 
 import (
+	"BHLA/shared/logging"
 	"context"
 	"errors"
 	"strings"
@@ -17,7 +18,7 @@ import (
 const authHeader = "authorization"
 
 type Logger interface {
-	LogError(msg string, err error)
+	LogError(msg string, fields ...logging.Field)
 }
 
 type Authenticator struct {
@@ -80,7 +81,7 @@ func (a *Authenticator) authenticate(ctx context.Context) (context.Context, erro
 			errors.Is(err, session_validation.ErrSessionInvalid):
 			return nil, status.Error(codes.Unauthenticated, "invalid or expired session")
 		default:
-			a.log.LogError("session validation failed (infra)", err)
+			a.log.LogError("session validation failed (infra)", logging.Err(err))
 			return nil, status.Error(codes.Unavailable, "auth backend unavailable")
 		}
 	}

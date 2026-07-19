@@ -35,9 +35,9 @@ func (h *Handler) ValidateSession(ctx context.Context, req *authpb.ValidateSessi
 		return nil, err
 	}
 	return &authpb.ValidateSessionResponse{
-		SessionId:  sess.SessionID,
-		UserId:     sess.UserID,
-		State:      stateToProto(sess.State),
-		ValidUntil: timestamppb.New(sess.ValidUntil),
+		SessionId:    sess.SessionID,
+		UserId:       sess.UserID,
+		SessionState: stateToProto(sess.State),
+		Ttl:          timestamppb.New(sess.ValidUntil),
 	}, nil
 }

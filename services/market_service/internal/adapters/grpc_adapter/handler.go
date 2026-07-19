@@ -20,12 +20,12 @@ func NewHandler(uc ports.MarketInbound, logger logging.Logger) *Handler {
 }
 
 func (h *Handler) ViewMarketsByID(ctx context.Context, req *marketpb.ViewMarketRequest) (*marketpb.ViewMarketResponse, error) {
-	market, err := h.uc.ViewMarketByID(ctx, req.GetMarketId())
+	market, err := h.uc.ViewMarketByID(ctx, req.GetViewMarketRequest())
 	if err != nil {
-		h.logger.LogError("view market by id failed", logging.Field{Key: "market_id", Value: req.GetMarketId()}, logging.Err(err))
+		h.logger.LogError("view market by id failed", logging.Field{Key: "market_id", Value: req.GetViewMarketRequest()}, logging.Err(err))
 		return nil, err
 	}
-	return &marketpb.ViewMarketResponse{Market: marketToProto(market)}, nil
+	return &marketpb.ViewMarketResponse{ViewMarketResponse: marketToProto(market)}, nil
 }
 
 func (h *Handler) ViewAllMarkets(ctx context.Context, req *marketpb.ViewAllMarketsRequest) (*marketpb.ViewAllMarketsResponse, error) {

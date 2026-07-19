@@ -48,7 +48,7 @@ func (h *Handler) CreateOrder(ctx context.Context, req *orderpb.CreateOrderReque
 	if err != nil {
 		return nil, err
 	}
-	return &orderpb.CreateOrderResponse{Order: orderToProto(order)}, nil
+	return &orderpb.CreateOrderResponse{CreateOrderResponse: orderToProto(order)}, nil
 }
 
 func (h *Handler) GetOrderStatusByID(ctx context.Context, req *orderpb.OrderStatusByIDRequest) (*orderpb.OrderStatusByIDResponse, error) {
@@ -60,7 +60,7 @@ func (h *Handler) GetOrderStatusByID(ctx context.Context, req *orderpb.OrderStat
 	if err != nil {
 		return nil, err
 	}
-	return &orderpb.OrderStatusByIDResponse{Order: orderToProto(order)}, nil
+	return &orderpb.OrderStatusByIDResponse{OrderStatusResponse: orderToProto(order)}, nil
 }
 
 func (h *Handler) GetOrderStatusAll(ctx context.Context, req *orderpb.OrderStatusAllRequest) (*orderpb.OrderStatusAllResponse, error) {
@@ -76,7 +76,7 @@ func (h *Handler) GetOrderStatusAll(ctx context.Context, req *orderpb.OrderStatu
 	for _, o := range orders {
 		out = append(out, orderToProto(o))
 	}
-	return &orderpb.OrderStatusAllResponse{Orders: out, NextPageToken: next}, nil
+	return &orderpb.OrderStatusAllResponse{AllOrdersStatusesResponse: out, NextPageToken: next}, nil
 }
 
 func (h *Handler) StreamOrderUpdates(req *orderpb.StreamOrderRequest, stream orderpb.OrderService_StreamOrderUpdatesServer) error {
@@ -99,7 +99,7 @@ func (h *Handler) StreamOrderUpdates(req *orderpb.StreamOrderRequest, stream ord
 			return false, err
 		}
 		if first || order.OrderStatus != last {
-			if err := stream.Send(&orderpb.OrderStatusByIDResponse{Order: orderToProto(order)}); err != nil {
+			if err := stream.Send(&orderpb.OrderStatusByIDResponse{OrderStatusResponse: orderToProto(order)}); err != nil {
 				return false, err
 			}
 			last = order.OrderStatus

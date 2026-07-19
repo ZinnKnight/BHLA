@@ -37,7 +37,7 @@ type App struct {
 	pool       *pgxpool.Pool
 	redis      *redis_client.Client
 	grpcServer *grpc.Server
-	metricsRec *metrics.PrometheusRecord
+	metricsRec *metrics.PrometheusRecorder
 }
 
 func New(ctx context.Context) (*App, error) {
@@ -80,7 +80,7 @@ func New(ctx context.Context) (*App, error) {
 	uc := usecase.New(repo, emitter, txm, logger)
 	handler := grpc_adapters.NewHandler(uc, grpc_adapters.NewStubPrerequisite(), logger)
 
-	rec := metrics.NewPrometheusRecord()
+	rec := metrics.NewPrometheusRecorder()
 	validator := session_validation.NewRedisValidator(redis.Client)
 	authn := session_auth.New(validator, logger, publicUserRegistration)
 
@@ -111,7 +111,7 @@ func (a *App) Run(ctx context.Context) error {
 	}
 
 	go func() {
-		if err := metrics.StartMetricsServer(ctx, a.cfg.MetricsPort, a.metricsRec.Registry()); err != nil {
+		if err := metrics.StartMetricsServer(ctx, a.cfg.MetricsPort, a.metricsRec.Handler()); err != nil {
 			a.logger.LogError("metrics server stopped", logging.Err(err))
 		}
 	}()
