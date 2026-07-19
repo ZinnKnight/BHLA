@@ -1,4 +1,4 @@
-module shared
+module BHLA/shared
 
 go 1.26.3
 

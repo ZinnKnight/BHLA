@@ -1,4 +1,4 @@
-module order_service
+module BHLA/services/order_service
 
 go 1.26.3
 

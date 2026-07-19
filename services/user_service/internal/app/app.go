@@ -24,8 +24,8 @@ import (
 	"BHLA/shared/session_validation"
 	"BHLA/shared/tx_manager"
 
-	"BHLA/services/user_service/internal/adapters/grpc_adapter"
-	"BHLA/services/user_service/internal/adapters/postgres_adapter"
+	"BHLA/services/user_service/internal/adapters/grpc_adapters"
+	"BHLA/services/user_service/internal/adapters/postges_adapter"
 	"BHLA/services/user_service/internal/usecase"
 )
 
@@ -74,11 +74,11 @@ func New(ctx context.Context) (*App, error) {
 		return nil, fmt.Errorf("redis: %w", err)
 	}
 
-	repo := postgres_adapter.NewUserRepo(pool)
+	repo := postges_adapter.NewUserRepo(pool)
 	emitter := event_log.New(logger)
 	txm := tx_manager.NewTxManager(pool)
 	uc := usecase.New(repo, emitter, txm, logger)
-	handler := grpc_adapter.NewHandler(uc, grpc_adapter.NewStubPrerequisite(), logger)
+	handler := grpc_adapters.NewHandler(uc, grpc_adapters.NewStubPrerequisite(), logger)
 
 	rec := metrics.NewPrometheusRecord()
 	validator := session_validation.NewRedisValidator(redis.Client)

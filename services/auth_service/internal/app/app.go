@@ -35,7 +35,7 @@ type App struct {
 	pool       *pgxpool.Pool
 	redis      *redis_client.Client
 	grpcServer *grpc.Server
-	metricsRec *metrics.PrometheusRecord
+	metricsRec *metrics.
 }
 
 func New(ctx context.Context) (*App, error) {

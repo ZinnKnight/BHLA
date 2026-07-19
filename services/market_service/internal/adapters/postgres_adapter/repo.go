@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"BHLA/shared/txmanager"
+	"BHLA/shared/tx_manager"
 
 	"BHLA/services/market_service/internal/domain"
 	"BHLA/services/market_service/internal/ports"
@@ -30,7 +30,7 @@ type dbConn interface {
 }
 
 func (r *MarketRepo) connection(ctx context.Context) dbConn {
-	if tx, ok := txmanager.ExtractManager(ctx); ok {
+	if tx, ok := tx_manager.ExtractManager(ctx); ok {
 		return tx
 	}
 	return r.pool

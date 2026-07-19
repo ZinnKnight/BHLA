@@ -1,4 +1,4 @@
-package metrics_port
+package metrics
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"BHLA/shared/metrics/metrics_port"
 )
 
-func UnaryServerInterceptor(rec metrics_port.MetricsRecord) grpc.UnaryServerInterceptor {
+func UnaryServerInterceptor(rec metrics_port.PrometheusRecord) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		resp, err := handler(ctx, req)
 		rec.IncRequest(info.FullMethod, status.Code(err).String())
@@ -17,7 +17,7 @@ func UnaryServerInterceptor(rec metrics_port.MetricsRecord) grpc.UnaryServerInte
 	}
 }
 
-func StreamServerInterceptor(rec metrics_port.MetricsRecord) grpc.StreamServerInterceptor {
+func StreamServerInterceptor(rec metrics_port.PrometheusRecord) grpc.StreamServerInterceptor {
 	return func(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		err := handler(srv, ss)
 		rec.IncRequest(info.FullMethod, status.Code(err).String())

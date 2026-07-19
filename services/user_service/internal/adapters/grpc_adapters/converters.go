@@ -5,7 +5,7 @@ import (
 	"BHLA/shared/auth_roles"
 )
 
-func planToProto(p authroles.Plan) userpb.UserRoles {
+func planToProto(p auth_roles.Plan) userpb.UserRoles {
 	switch p {
 	case auth_roles.Free:
 		return userpb.UserRoles_FREE_PLAN_USER

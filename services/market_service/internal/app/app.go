@@ -29,10 +29,10 @@ import (
 	"BHLA/shared/session_validation"
 	"BHLA/shared/tx_manager"
 
-	"BHLA/services/market-service/internal/adapters/grpcadapter"
-	"BHLA/services/market-service/internal/adapters/postgresadapter"
-	"BHLA/services/market-service/internal/saga"
-	"BHLA/services/market-service/internal/usecase"
+	"BHLA/services/market_service/internal/adapters/grpc_adapter"
+	"BHLA/services/market_service/internal/adapters/postgres_adapter"
+	"BHLA/services/market_service/internal/saga"
+	"BHLA/services/market_service/internal/usecase"
 )
 
 type App struct {
@@ -99,7 +99,7 @@ func New(ctx context.Context) (*App, error) {
 	writer := outbox.NewWriter(pool, topicResolver)
 	relay := outbox.NewRelay(pool, producer, logger, 100, time.Second)
 
-	marketRepo := postgresadapter.NewMarketRepo(pool)
+	marketRepo := postgres_adapter.NewMarketRepo(pool)
 	participant := saga.NewParticipant(marketRepo, txm, writer, idempotency.NewGuard(pool, "market-reserve"), logger)
 
 	cmdConsumer, err := kafka.NewConsumer(ctx, kafka.ConsumerConfig{
@@ -115,7 +115,7 @@ func New(ctx context.Context) (*App, error) {
 	}
 
 	uc := usecase.New(marketRepo, logger)
-	handler := grpcadapter.NewHandler(uc, logger)
+	handler := grpc_adapter.NewHandler(uc, logger)
 
 	rec := metrics.NewPrometheusRecord()
 	validator := session_validation.NewRedisValidator(redis.Client)

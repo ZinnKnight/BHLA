@@ -6,11 +6,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-
-	"BHLA/shared/metrics/metrics_port"
 )
 
-var _ metrics_port.MetricsRecord = (*PrometheusRecord)(nil)
+var _ PrometheusRecord = (*PrometheusRecord)(nil)
 
 type PrometheusRecord struct {
 	registry *prometheus.Registry

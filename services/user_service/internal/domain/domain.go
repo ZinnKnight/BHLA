@@ -10,7 +10,7 @@ type User struct {
 	UserID       string
 	UserName     string
 	UserPassword string
-	Role         authroles.Plan
+	Role         auth_roles.Plan
 }
 
 func (u *User) ValidateUser() error {

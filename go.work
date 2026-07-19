@@ -1,3 +1,10 @@
 go 1.26.3
 
-use ./shared
+use (
+	./proto
+	./services/auth_service
+	./services/market_service
+	./services/order_service
+	./services/user_service
+	./shared
+)

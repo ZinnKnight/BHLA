@@ -40,7 +40,7 @@ func (h *Handler) UserRegistration(ctx context.Context, req *userpb.RegisterRequ
 func (h *Handler) GetUserData(ctx context.Context, _ *userpb.GetUserDataRequest) (*userpb.GetUserDataResponse, error) {
 	id, ok := auth_context.From(ctx)
 	if !ok {
-		return nil, errmap.NewError(errmap.Unauthenticated, "требуется авторизация", nil)
+		return nil, err_map.NewError(err_map.Unauthenticated, "требуется авторизация", nil)
 	}
 	user, err := h.uc.GetUser(ctx, id.UserID)
 	if err != nil {
@@ -58,18 +58,18 @@ func (h *Handler) GetUserData(ctx context.Context, _ *userpb.GetUserDataRequest)
 func (h *Handler) PlanChange(ctx context.Context, req *userpb.PlanChangeRequest) (*userpb.PlanChangeResponse, error) {
 	id, ok := auth_context.From(ctx)
 	if !ok {
-		return nil, errmap.NewError(errmap.Unauthenticated, "требуется авторизация", nil)
+		return nil, err_map.NewError(err_map.Unauthenticated, "требуется авторизация", nil)
 	}
 	if req.GetUserId() != id.UserID {
-		return nil, errmap.NewError(errmap.PermissionDenied, "можно менять только собственный тариф", nil)
+		return nil, err_map.NewError(err_map.PermissionDenied, "можно менять только собственный тариф", nil)
 	}
 
 	newPlan, ok := protoToPlan(req.GetUserRole())
 	if !ok || !domain.CanSelfPlanChange(newPlan) {
-		return nil, errmap.NewError(errmap.PermissionDenied, "доступны только тарифы Free и Pro", nil)
+		return nil, err_map.NewError(err_map.PermissionDenied, "доступны только тарифы Free и Pro", nil)
 	}
 	if newPlan == auth_roles.Pro && !h.prereq.UpgradeAgree(ctx, id.UserID) {
-		return nil, errmap.NewError(errmap.FailedPrecondition, "для перехода на Pro требуется выполнение условия", nil)
+		return nil, err_map.NewError(err_map.FailedPrecondition, "для перехода на Pro требуется выполнение условия", nil)
 	}
 
 	user, err := h.uc.PlanChange(ctx, id.UserID, newPlan)
